@@ -60,10 +60,10 @@ export function findGlobalEslintDirectory(config) {
   return eslintDir
 }
 
-export function findESLintDirectory(modulesDir, config, projectPath) {
+export function findESLintDirectory(modulesDir, config, projectPath, fallback = false) {
   let eslintDir = null
   let locationType = null
-  if (config.global.useGlobalEslint) {
+  if (config.global.useGlobalEslint && !fallback) {
     locationType = 'global'
     eslintDir = findGlobalEslintDirectory(config)
   } else if (!config.advanced.localNodeModules) {
@@ -85,7 +85,8 @@ export function findESLintDirectory(modulesDir, config, projectPath) {
   }
 
   if (config.global.useGlobalEslint) {
-    throw new Error('ESLint not found, please ensure the global Node path is set correctly.')
+    console.warn('ESLint not found, please ensure the global Node path is set correctly. \n Using other methods to find Eslint...')
+    findESLintDirectory(modulesDir, config, projectPath, true)
   }
 
   return {
