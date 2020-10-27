@@ -47,19 +47,25 @@ function isDirectory(dirPath) {
   return isDir
 }
 
+export function findGlobalEslintDirectory(config) {
+  let eslintDir = null
+  const configGlobal = cleanPath(config.global.globalNodePath)
+  const prefixPath = configGlobal || getNodePrefixPath()
+  // NPM on Windows and Yarn on all platforms
+  eslintDir = Path.join(prefixPath, 'node_modules', 'eslint')
+  if (!isDirectory(eslintDir)) {
+    // NPM on platforms other than Windows
+    eslintDir = Path.join(prefixPath, 'lib', 'node_modules', 'eslint')
+  }
+  return eslintDir
+}
+
 export function findESLintDirectory(modulesDir, config, projectPath) {
   let eslintDir = null
   let locationType = null
   if (config.global.useGlobalEslint) {
     locationType = 'global'
-    const configGlobal = cleanPath(config.global.globalNodePath)
-    const prefixPath = configGlobal || getNodePrefixPath()
-    // NPM on Windows and Yarn on all platforms
-    eslintDir = Path.join(prefixPath, 'node_modules', 'eslint')
-    if (!isDirectory(eslintDir)) {
-      // NPM on platforms other than Windows
-      eslintDir = Path.join(prefixPath, 'lib', 'node_modules', 'eslint')
-    }
+    eslintDir = findGlobalEslintDirectory(config)
   } else if (!config.advanced.localNodeModules) {
     locationType = 'local project'
     eslintDir = Path.join(modulesDir || '', 'eslint')
