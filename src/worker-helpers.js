@@ -47,25 +47,19 @@ function isDirectory(dirPath) {
   return isDir
 }
 
-export function findGlobalEslintDirectory(config) {
-  let eslintDir = null
-  const configGlobal = cleanPath(config.global.globalNodePath)
-  const prefixPath = configGlobal || getNodePrefixPath()
-  // NPM on Windows and Yarn on all platforms
-  eslintDir = Path.join(prefixPath, 'node_modules', 'eslint')
-  if (!isDirectory(eslintDir)) {
-    // NPM on platforms other than Windows
-    eslintDir = Path.join(prefixPath, 'lib', 'node_modules', 'eslint')
-  }
-  return eslintDir
-}
-
-export function findESLintDirectory(modulesDir, config, projectPath, fallback = false) {
+export function findESLintDirectory(modulesDir, config, projectPath) {
   let eslintDir = null
   let locationType = null
-  if (config.global.useGlobalEslint && !fallback) {
+  if (config.global.useGlobalEslint) {
     locationType = 'global'
-    eslintDir = findGlobalEslintDirectory(config)
+    const configGlobal = cleanPath(config.global.globalNodePath)
+    const prefixPath = configGlobal || getNodePrefixPath()
+    // NPM on Windows and Yarn on all platforms
+    eslintDir = Path.join(prefixPath, 'node_modules', 'eslint')
+    if (!isDirectory(eslintDir)) {
+      // NPM on platforms other than Windows
+      eslintDir = Path.join(prefixPath, 'lib', 'node_modules', 'eslint')
+    }
   } else if (!config.advanced.localNodeModules) {
     locationType = 'local project'
     eslintDir = Path.join(modulesDir || '', 'eslint')
@@ -85,8 +79,7 @@ export function findESLintDirectory(modulesDir, config, projectPath, fallback = 
   }
 
   if (config.global.useGlobalEslint) {
-    console.warn('ESLint not found, please ensure the global Node path is set correctly. \n Using other methods to find Eslint...')
-    findESLintDirectory(modulesDir, config, projectPath, true)
+    throw new Error('Global ESLint is not found, please ensure the global Node path is set correctly. \n If you wanted to use a local installation of Eslint, disable Global Eslint option in the linter-eslint config.')
   }
 
   return {
